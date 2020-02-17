@@ -13,6 +13,9 @@ You can access the AWS URL and play around with the API of the application:
 
 Link to the AWS RESTful API: **ec2-3-15-28-3.us-east-2.compute.amazonaws.com:5000/api**
 
+### Example of Registering a User Through Postman
+
+
 
 
 
