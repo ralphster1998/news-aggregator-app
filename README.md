@@ -10,7 +10,7 @@ The application can also webscrape three news sites: yahoo.com, medicalnewstoday
 
 You can access the AWS URL and play around with the API of the application:
 
-Link: ec2-3-15-28-3.us-east-2.compute.amazonaws.com:5000/api
+**Link to the AWS RESTful API:** (ec2-3-15-28-3.us-east-2.compute.amazonaws.com:5000/api)
 
 
 
