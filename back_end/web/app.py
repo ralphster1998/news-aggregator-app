@@ -21,7 +21,7 @@ app.config["JWT_SECRET_KEY"] = "secret"
 jwt = JWTManager(app)
 
 def UserExist(username):
-    if users.count_documents({"Username":username}) == 0:
+    if users.count_documents({"username":username}) == 0:
         return False
     else:
         return True
@@ -38,7 +38,7 @@ class Register(Resource):
         if UserExist(username):
             retJson = {
                 'status':301,
-                'msg': 'Invalid Username'
+                'msg': 'Invalid username'
             }
             return jsonify(retJson)
 
@@ -46,8 +46,8 @@ class Register(Resource):
 
         #Store username and pw into the database
         users.insert_one({
-            "Username": username,
-            "Password": hashed_pw
+            "username": username,
+            "password": hashed_pw
         })
 
         retJson = {
@@ -59,27 +59,24 @@ class Register(Resource):
 class Login(Resource):
     def post(self):
         postedData = request.get_json()
-        username = postedData["username"]
-        password = postedData["password"] #"123xyz"
+        username = postedData['username']
+        password = postedData['password'] #'123xyz'
 
         result = ""
+        foundusername = users.find_one({'username': username})
+        hashed_pw = users.find_one({ "username":username })['password']
 
-        foundUsername = users.find_one({"username": username})
-        hashed_pw = users.find({ "username":username })[0]["password"]
-
-        if foundUsername:
-            if bcrypt.hashpw(password.encode("utf8"), hashed_pw) == hashed_pw:
+        
+        if foundusername:
+            if bcrypt.hashpw(password.encode('utf8'), hashed_pw) == hashed_pw:
                 access_token = create_access_token(identity = {
-                    "first_name": foundUsername["first_name"],
-                    "last_name": foundUsername["last_name"],
-                    "username": foundUsername["username"]
+                    'username': foundusername ['username']
                 })
-                result = jsonify({"token":access_token})
+                result = jsonify({'token':access_token})
             else:
                 result = jsonify({"error":"Invalid username and password"})
         else:
             result = jsonify({"result":"No results found"})
-
         return result
 
 class WebScraperYahoo(Resource):
