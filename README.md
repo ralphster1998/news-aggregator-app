@@ -16,6 +16,8 @@ Link to the AWS RESTful API: **ec2-3-15-28-3.us-east-2.compute.amazonaws.com:500
 ### Example of Successfully Registering a User Through Postman (Result Shown Below)
 ![image](https://user-images.githubusercontent.com/34559304/74641670-86c6bd00-5126-11ea-8e8e-4486db37e9af.png)
 
+### Example of Successfully Registering a User Through Postman (Result Shown Below)
+
 
 
 
