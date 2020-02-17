@@ -63,14 +63,14 @@ class Login(Resource):
         password = postedData['password'] #'123xyz'
 
         result = ""
-        foundusername = users.find_one({'username': username})
+        found_username = users.find_one({'username': username})
         hashed_pw = users.find_one({ "username":username })['password']
 
         
-        if foundusername:
+        if found_username:
             if bcrypt.hashpw(password.encode('utf8'), hashed_pw) == hashed_pw:
                 access_token = create_access_token(identity = {
-                    'username': foundusername ['username']
+                    'username': found_username ['username']
                 })
                 result = jsonify({'token':access_token})
             else:
