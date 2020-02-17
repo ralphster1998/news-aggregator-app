@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request
 from flask_restful import Api, Resource
 from pymongo import MongoClient
-import bcrypt, json
+import bcrypt
 from flask_jwt_extended import JWTManager 
 from flask_jwt_extended import create_access_token
 
