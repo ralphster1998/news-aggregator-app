@@ -1,18 +1,5 @@
 import React, { Component } from 'react';
 
-const data = [{
-        name: 'www.yahoo.com',
-        value: 'www.yahoo.com'
-    },
-    {
-        name: 'www.medicalnewstoday.com',
-        value: 'www.medicalnewstoday.com'
-    },
-    {
-        name: 'https://www.buzzfeednews.com/section/books',
-        value: 'https://www.buzzfeednews.com/section/books'
-    }];
-
 class NewsSources extends Component {
     result(params) {
         console.log(params);

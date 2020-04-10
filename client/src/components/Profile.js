@@ -5,23 +5,26 @@ class Profile extends Component {
     constructor() {
         super()
         this.state = {
-            first_name: '',
-            last_name: '',
-            username: ''
+            username: '',
+            urls:[]
         }
     }
 
     componentDidMount () {
         const token = localStorage.usertoken
         const decoded = jwt_decode(token)
+        console.log("Check: " + decoded.identity.urls)
         this.setState({
-            first_name: decoded.identity.first_name,
-            last_name: decoded.identity.last_name,
-            username: decoded.identity.username
+            username: decoded.identity.username,
+            urls: decoded.identity.urls
         })
     }
 
     render () {
+        const URLS = this.state.urls;
+        const listURLs = URLS.map((url) =>
+        <ul>{url}</ul>
+        );
         return (
             <div className="container">
                 <div className="jumbotron mt-5">
@@ -31,16 +34,12 @@ class Profile extends Component {
                     <table className="table col-md-6 mx-auto">
                         <tbody>
                             <tr>
-                                <td>First Name</td>
-                                <td>{this.state.first_name}</td>
-                            </tr>
-                            <tr>
-                                <td>Last Name</td>
-                                <td>{this.state.last_name}</td>
-                            </tr>
-                            <tr>
                                 <td>Username</td>
-                                <td>{this.state.username}</td>
+                                <ul>{this.state.username}</ul>
+                            </tr>
+                            <tr>
+                                <td>URLs</td>
+                                {listURLs}
                             </tr>
                         </tbody>
                     </table>

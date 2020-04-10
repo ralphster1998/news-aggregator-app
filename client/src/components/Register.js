@@ -1,16 +1,23 @@
 import React, { Component } from 'react'
 import { register } from './UserFunctions'
+import { Dropdown } from 'semantic-ui-react'
+
+const data = [
+    { key: 'common_sense', text: 'Common Sense Media', value: 'Common Sense' },
+    { key: 'medical', text: 'Medical News Today', value: 'Medical News Today' },
+    { key: 'buzzfeed', text: 'Buzz Feed News', value: 'BuzzFeed' },
+    { key: 'polygon', text: 'Polygon', value: 'Polygon' },
+    { key: 'espn', text: 'ESPN', value: 'ESPN' },
+
+];
 
 class Register extends Component {
     constructor() {
         super()
         this.state = {
-            first_name: '',
-            last_name: '',
             username: '',
             password: '',
-            urls: [],
-            errors: {}
+            urls: []
         }
 
         this.onChange = this.onChange.bind(this)
@@ -21,16 +28,21 @@ class Register extends Component {
         this.setState({ [e.target.name]: e.target.value })
     }
 
+    handleDropDown = (event, data) => {
+        console.log(data.value)
+        this.setState({ urls: data.value })
+    }
+
     onSubmit (e) {
         e.preventDefault()
 
         const newUser = {
-            first_name: this.state.first_name,
-            last_name: this.state.last_name,
             username: this.state.username,
             password: this.state.password,
-            urls: []
+            urls: this.state.urls
         }
+
+        console.log(newUser);
 
         register(newUser).then(res => {
             this.props.history.push(`/login`)
@@ -44,24 +56,6 @@ class Register extends Component {
                     <div className="col-md-6 mt-5 mx-auto">
                         <form noValidate onSubmit={this.onSubmit}>
                             <h1 className="h3 mb-3 font-weight-normal">Register</h1>
-                            <div className="form-group">
-                                <label htmlFor="first_name">First Name</label>
-                                <input type="text"
-                                    className="form-control"
-                                    name="first_name"
-                                    placeholder="Enter First Name"
-                                    value={this.state.first_name}
-                                    onChange={this.onChange} />
-                            </div>
-                            <div className="form-group">
-                                <label htmlFor="last_name">Last Name</label>
-                                <input type="text"
-                                    className="form-control"
-                                    name="last_name"
-                                    placeholder="Enter Last Name"
-                                    value={this.state.last_name}
-                                    onChange={this.onChange} />
-                            </div>
                             <div className="form-group">
                                 <label htmlFor="username">Username </label>
                                 <input type="username"
@@ -80,7 +74,11 @@ class Register extends Component {
                                     value={this.state.password}
                                     onChange={this.onChange} />
                             </div>
-
+                            <div className="form-group">
+                                <Dropdown placeholder='News Sources' 
+                                        onChange={this.handleDropDown}
+                                          fluid multiple selection options={data} />
+                            </div>
                             <button type="submit" className="btn btn-lg btn-primary btn-block">
                                 Register
                             </button>
