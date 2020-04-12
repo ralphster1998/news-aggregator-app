@@ -22,14 +22,22 @@ client = MongoClient("mongodb://localhost:27017") # change to db when using Dock
 db = client.UsersManagementDB
 users = db["Users"]
 
+# Global variables to keep track of the CURRENT USER
+current_user = {}
+user_list_news = dict()
+tracked_urls = []
+
 app.config["JWT_SECRET_KEY"] = "secret"
 
 jwt = JWTManager(app)
 
-#global user news list
-list_news = []
 
-def tech_radar():
+"""
+REST API SECTION
+This is where we gather the information from APIs whether it is through webscraping or using a news source api 
+from the Internet.
+"""
+def NewsFromTechRadar():
     # Mashable news api 
     main_url = "https://newsapi.org/v2/top-headlines?sources=techradar&apiKey=d9aac332ec5044139d950b0060a89933"
   
@@ -43,7 +51,7 @@ def tech_radar():
         news_links[article_title] = article_link
     return news_links
 
-def medical():
+def NewsFromMedicalToday():
     URL = "https://www.medicalnewstoday.com"
     page = requests.get(URL)
     soup = BeautifulSoup(page.content, "html.parser")
@@ -55,12 +63,11 @@ def medical():
         links = news.find("a", class_="css-ni2lnp")["href"]
         if None in (title, links):
             continue
-        print("Title: " + title.text.strip(), end="\n" * 2)
-        print(links, end="\n" * 2)
+
         news_links[title.text.strip()] = URL + links
     return news_links
 
-def buzzfeed():
+def NewsFromBuzzFeed():
     URL = "https://www.buzzfeednews.com/section/books"
     page = requests.get(URL)
     soup = BeautifulSoup(page.content, "html.parser")
@@ -72,9 +79,8 @@ def buzzfeed():
         title = news.find("a", class_="newsblock-story-card__link xs-flex")
         if None in (title, links):
             continue
-        print("Title: " + title.text.strip(), end="\n" * 2)
-        print(links, end="\n" * 2)
-        news_links[title.text.strip()] = URL + links
+
+        news_links[title.text.strip()] = links
     return news_links
 
 def NewsFromPolygon(): 
@@ -105,26 +111,17 @@ def NewsFromESPN():
         news_links[article_title] = article_link
     return news_links
 
-# Gather all news for one user (SEQUENTIAL)
-def gatherNews(id):
-    list_news.append(NewsFromESPN())
-    list_news.append(NewsFromPolygon())
-    list_news.append(buzzfeed())
-    list_news.append(medical())
-    list_news.append(tech_radar())
-    return list_news
-
 class WebScraperTechRadar(Resource):
     def get(self):
-        return tech_radar()
+        return NewsFromTechRadar()
         
 class WebScraperMedicalToday(Resource):
     def get(self):
-        return medical()
+        return NewsFromMedicalToday()
 
 class WebScraperBuzzFeedBooks(Resource):
     def get(self):
-        return buzzfeed()
+        return NewsFromBuzzFeed()
 class WebScraperPolygon(Resource):
     def get(self):
         return NewsFromPolygon()
@@ -133,9 +130,9 @@ class WebScraperESPN(Resource):
     def get(self):
         return NewsFromESPN()
 
-class WebScraperUser(Resource):
+class WebScraperUser(Resource): #MAIN FUNCTION TO GET USER'S FEEDS
     def get(self):
-        return gatherNews()
+        return user_feeds()
 
 def UserExist(username):
     if users.count_documents({"username":username}) == 0:
@@ -143,6 +140,79 @@ def UserExist(username):
     else:
         return True
 
+"""
+PARALLEL SECTION
+This is where we put the parallelism.
+"""
+def gatherFeed(news_source):
+    global user_list_news # NOT UPDATING THE DICTIONARY FOR SOME REASON!!!
+    feeds = news_source
+
+    for title in feeds: # Iterate through each url and put it in one big dictionary
+        print("Title: ", title)
+        print("Link: ", feeds[title])
+        user_list_news[title] = feeds[title]
+    print("List of news: " ,user_list_news)
+
+def parallel(id):
+    name = threading.current_thread().getName()
+    print(name, 'Thread ID:', id)
+    global tracked_urls
+    global user_list_news
+
+    if id not in tracked_urls:
+        tracked_urls.append(id)
+
+        if id == 'Tech Radar':
+            print('Tech Radar')
+            gatherFeed(NewsFromTechRadar())
+        elif id == 'ESPN':
+            print('ESPN')
+            gatherFeed(NewsFromESPN())
+        elif id == 'Polygon':
+            print('Polygon')
+            gatherFeed(NewsFromPolygon())
+        elif id == 'BuzzFeed':
+            print('BuzzFeed')
+            gatherFeed(NewsFromBuzzFeed())
+        elif id == 'Medical News Today':
+            print('Medical News Today')
+            gatherFeed(NewsFromMedicalToday())
+
+    # print("News feeds", user_list_news)
+    return user_list_news
+
+
+def user_feeds():
+    pool = ThreadPoolExecutor(max_workers=5) # limit to only 5 threads
+    global user_list_news
+    global tracked_urls
+    user_list_news = dict() # restart the news feeds when user logs in
+    tracked_urls = []
+
+    selected_urls = current_user['urls']
+    for id in range(len(selected_urls)):
+        pool.submit(parallel, selected_urls[id])
+    pool.shutdown()
+    return user_list_news
+
+# Gather all news for one user (SEQUENTIAL)
+def gatherNews(id):
+    list_news.append(NewsFromESPN())
+    list_news.append(NewsFromPolygon())
+    list_news.append(NewsFromBuzzFeed())
+    list_news.append(NewsFromMedicalToday())
+    list_news.append(NewsFromTechRadar())
+    return list_news  # HAVE A REFRESH BUTTON TO POST THE USER'S URLS AND GET THE  LATEST POSTS ==> LEFT OFF!!!
+
+"""
+value: 'Tech Radar' },
+    { key: 'medical', text: 'Medical News Today', value: 'Medical News Today' },
+    { key: 'buzzfeed', text: 'Buzz Feed News', value: 'BuzzFeed' },
+    { key: 'polygon', text: 'Polygon', value: 'Polygon' },
+    { key: 'espn', text: 'ESPN', value: 'ESPN' }
+DATABASE AND BACK-END HANDLING: PUT USER'S INFO AND SUGGESTED URLS IN THE MONGODB DATABASE
+"""
 class Register(Resource):
     def post(self):
         #Step 1 is to get posted data by the user
@@ -166,7 +236,7 @@ class Register(Resource):
         users.insert_one({
             "username": username,
             "password": hashed_pw,
-            "urls": urls
+            "urls": urls   
         })
 
         retJson = {
@@ -189,6 +259,10 @@ class Login(Resource):
         
         if found_username:
             if bcrypt.hashpw(password.encode('utf8'), hashed_pw) == hashed_pw:
+                global current_user
+                global user_list_news
+                current_user = found_username # server keeps track of current user when web scraping
+                
                 access_token = create_access_token(identity = {
                     'username': found_username ['username'],
                     'urls': found_username['urls'] # connect with front-end the info
@@ -198,6 +272,7 @@ class Login(Resource):
                 result = jsonify({"error":"Invalid username and password"})
         else:
             result = jsonify({"result":"No results found"})
+        print("Current User: ", current_user )
         return result
 
 api.add_resource(Register, "/api/register")
@@ -209,7 +284,6 @@ api.add_resource(WebScraperPolygon, "/api/polygon/scrape")
 api.add_resource(WebScraperESPN, "/api/espn/scrape")
 api.add_resource(WebScraperUser, "/api/user/scrape")
 
-
 """
 PLAN FOR CS 159 IMPLEMENTATION
 - ADD TWO MORE WEBSITES (JUST USE THE APIS --> NO NEED TO WEBSCRAPE ANYMORE) $
@@ -217,12 +291,14 @@ PLAN FOR CS 159 IMPLEMENTATION
 
 IMPORTANT!!!
 - ADD PARALLELISM TO A USER'S SET OF PICKED FEEDS (BASED FROM THE SET OF URLS) 
+    - CREATED THE THREAD POOL $
+    - IMPORTANT: GET USER'S NEWS FEEDS FROM DATABASE AND PUT THEM IN THE GET USER ROUTE
+
     - GO THROUGH THE WHOLE PYTHON PARALLEL COURSE AND SEE WHAT YOU CAN IMPLEMENT
     - RUN YOUR NEWS FEEDS THROUGHT THE PARALLEISM
 - MEASURE THE SPEEDUP AND OTHER THINGS BASED FROM THE PYTHON PARALLEL COURSE
-
-
 - THEN UPLOAD IT ON REACT
+
 - THEN PUT ALL OF IT IN DOCKER AND AWS WHEN YOU HAVE TIME
 
 - IMPORTANT: WRITE YOUR REPORT AT END OF THE DAY WHILE DOING THIS. 
