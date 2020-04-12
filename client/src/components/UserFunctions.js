@@ -29,3 +29,15 @@ export const login = user => {
             console.log(err)
         })
 }
+
+export const getNews = user => {
+    return axios
+            .get('api/user/scrape')
+            .then(response => {
+                console.log(response);
+            })
+            .catch(err => {
+                // handle error
+                console.log(err);
+            })
+}

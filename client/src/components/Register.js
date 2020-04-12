@@ -3,7 +3,7 @@ import { register } from './UserFunctions'
 import { Dropdown } from 'semantic-ui-react'
 
 const data = [
-    { key: 'common_sense', text: 'Common Sense Media', value: 'Common Sense' },
+    { key: 'tech_radar', text: 'Tech Radar', value: 'Tech Radar' },
     { key: 'medical', text: 'Medical News Today', value: 'Medical News Today' },
     { key: 'buzzfeed', text: 'Buzz Feed News', value: 'BuzzFeed' },
     { key: 'polygon', text: 'Polygon', value: 'Polygon' },
