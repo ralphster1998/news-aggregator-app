@@ -5,6 +5,9 @@ from pymongo import MongoClient
 import bcrypt
 from flask_jwt_extended import JWTManager 
 from flask_jwt_extended import create_access_token
+import time
+import multiprocessing as mp
+
 # d9aac332ec5044139d950b0060a89933 --> API Key For News
 
 # For Web Scraping
@@ -22,7 +25,7 @@ client = MongoClient("mongodb://localhost:27017") # change to db when using Dock
 db = client.UsersManagementDB
 users = db["Users"]
 
-# Global variables to keep track of the CURRENT USER'S INFO
+# Global variables to keep track of the CURRENT USER
 current_user = {}
 user_list_news = dict()
 tracked_urls = []
@@ -134,12 +137,6 @@ class WebScraperUser(Resource): #MAIN FUNCTION TO GET USER'S FEEDS
     def get(self):
         return user_feeds()
 
-def UserExist(username):
-    if users.count_documents({"username":username}) == 0:
-        return False
-    else:
-        return True
-
 """
 PARALLEL SECTION
 This is where we put the parallelism.
@@ -190,7 +187,8 @@ def user_feeds():
     user_list_news = dict() # restart the news feeds when user logs in
     tracked_urls = []
 
-    selected_urls = current_user['urls']
+    #  Put all five URLS to test out the threads
+    selected_urls = ['Medical News Today', 'BuzzFeed', 'ESPN', 'Polygon', 'Tech Radar']
     for id in range(len(selected_urls)):
         pool.submit(parallel, selected_urls[id])
     pool.shutdown()
@@ -204,78 +202,11 @@ def user_feeds_seq():
     tracked_urls = []
 
     #  Put all five URLS to test out sequence code
-    selected_urls = current_user['urls']
+    selected_urls = ['Medical News Today', 'BuzzFeed', 'ESPN', 'Polygon', 'Tech Radar']
     for id in range(len(selected_urls)):
         parallel(selected_urls[id])
     return user_list_news
 
-"""
-DATABASE AND BACK-END HANDLING: PUT USER'S INFO AND SUGGESTED URLS IN THE MONGODB DATABASE
-"""
-class Register(Resource):
-    def post(self):
-        #Step 1 is to get posted data by the user
-        postedData = request.get_json()
-
-        #Get the data
-        username = postedData["username"]
-        password = postedData["password"] #"123xyz"
-        urls = postedData["urls"]
-
-        if UserExist(username):
-            retJson = {
-                'status':301,
-                'msg': 'Invalid username'
-            }
-            return jsonify(retJson)
-
-        hashed_pw = bcrypt.hashpw(password.encode('utf8'), bcrypt.gensalt())
-
-        #Store username and pw into the database
-        users.insert_one({
-            "username": username,
-            "password": hashed_pw,
-            "urls": urls   
-        })
-
-        retJson = {
-            "status": 200,
-            "msg": "Success"
-        }
-        return jsonify(retJson)
-
-class Login(Resource):
-    def post(self):
-        postedData = request.get_json()
-        username = postedData['username']
-        password = postedData['password'] #'123xyz'
-
-        result = ""
-        found_username = users.find_one({'username': username})
-        print(found_username)
-        hashed_pw = users.find_one({ "username":username })['password']
-
-        
-        if found_username:
-            if bcrypt.hashpw(password.encode('utf8'), hashed_pw) == hashed_pw:
-                global current_user
-                global user_list_news
-                current_user = found_username # server keeps track of current user when web scraping
-                
-                access_token = create_access_token(identity = {
-                    'username': found_username ['username'],
-                    'urls': found_username['urls'] # connect with front-end the info
-                })
-                result = jsonify({'token':access_token})
-            else:
-                result = jsonify({"error":"Invalid username and password"})
-        else:
-            result = jsonify({"result":"No results found"})
-        print("Current User: ", current_user )
-        return result
-
-api.add_resource(Register, "/api/register")
-api.add_resource(Login, "/api/login")
 api.add_resource(WebScraperTechRadar, "/api/techradar/scrape")
 api.add_resource(WebScraperMedicalToday, "/api/medical/scrape")
 api.add_resource(WebScraperBuzzFeedBooks, "/api/books/scrape")
@@ -283,8 +214,28 @@ api.add_resource(WebScraperPolygon, "/api/polygon/scrape")
 api.add_resource(WebScraperESPN, "/api/espn/scrape")
 api.add_resource(WebScraperUser, "/api/user/scrape")
 
+if __name__ == '__main__':
+    NUM_EVAL_RUNS = 10
 
-if __name__=="__main__":
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    print('Evaluating Sequential Implementation...')
+    sequential_result = user_feeds_seq() # "warm up"
+    sequential_time = 0
+    for i in range(NUM_EVAL_RUNS):
+        start = time.perf_counter()
+        user_feeds_seq()
+        sequential_time += time.perf_counter() - start
+    sequential_time /= NUM_EVAL_RUNS
 
+    print('Evaluating Parallel Implementation...')
+    parallel_result = user_feeds()  # "warm up"
+    parallel_time = 0
+    for i in range(NUM_EVAL_RUNS):
+        start = time.perf_counter()
+        user_feeds()
+        parallel_time += time.perf_counter() - start
+    parallel_time /= NUM_EVAL_RUNS
 
+    print('Average Sequential Time: {:.2f} ms'.format(sequential_time*1000))
+    print('Average Parallel Time: {:.2f} ms'.format(parallel_time*1000))
+    print('Speedup: {:.2f}'.format(sequential_time/parallel_time))
+    print('Efficiency: {:.2f}%'.format(100*(sequential_time/parallel_time)/mp.cpu_count()))
