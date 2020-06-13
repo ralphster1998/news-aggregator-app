@@ -215,9 +215,9 @@ api.add_resource(WebScraperESPN, "/api/espn/scrape")
 api.add_resource(WebScraperUser, "/api/user/scrape")
 
 if __name__ == '__main__':
-    NUM_EVAL_RUNS = 10
+    NUM_EVAL_RUNS = 5
 
-    print('Evaluating Sequential Implementation...')
+    print('Sequential Implementation...')
     sequential_result = user_feeds_seq() # "warm up"
     sequential_time = 0
     for i in range(NUM_EVAL_RUNS):
@@ -226,7 +226,7 @@ if __name__ == '__main__':
         sequential_time += time.perf_counter() - start
     sequential_time /= NUM_EVAL_RUNS
 
-    print('Evaluating Parallel Implementation...')
+    print('Parallel Implementation...')
     parallel_result = user_feeds()  # "warm up"
     parallel_time = 0
     for i in range(NUM_EVAL_RUNS):
@@ -235,6 +235,7 @@ if __name__ == '__main__':
         parallel_time += time.perf_counter() - start
     parallel_time /= NUM_EVAL_RUNS
 
+    print("CPU Count", mp.cpu_count())
     print('Average Sequential Time: {:.2f} ms'.format(sequential_time*1000))
     print('Average Parallel Time: {:.2f} ms'.format(parallel_time*1000))
     print('Speedup: {:.2f}'.format(sequential_time/parallel_time))

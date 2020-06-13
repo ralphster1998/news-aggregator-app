@@ -15,7 +15,7 @@ from bs4 import BeautifulSoup
 import threading
 from concurrent.futures import ThreadPoolExecutor
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="build/static", template_folder="build")
 api = Api(app)
 
 client = MongoClient("mongodb://localhost:27017") # change to db when using Docker
@@ -283,6 +283,14 @@ api.add_resource(WebScraperPolygon, "/api/polygon/scrape")
 api.add_resource(WebScraperESPN, "/api/espn/scrape")
 api.add_resource(WebScraperUser, "/api/user/scrape")
 
+@app.route("/manifest.json")
+def manifest():
+    return send_from_directory('./build', 'manifest.json')
+
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory('./build', 'favicon.ico')
 
 if __name__=="__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)
