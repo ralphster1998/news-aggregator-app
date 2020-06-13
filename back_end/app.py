@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_restful import Api, Resource
 from pymongo import MongoClient
 import bcrypt
@@ -294,5 +294,7 @@ def favicon():
 
 if __name__=="__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)
-
+""" 
+FIXES TO DO: THE ./build directory is not working to deploy it and have servers work together. 
+"""
 
