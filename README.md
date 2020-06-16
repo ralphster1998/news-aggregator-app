@@ -4,19 +4,16 @@ and it is refreshed each time a user checks the latest set of news. For example,
 a user who is interested in psychological news will have mainly psychological news
 sources placed on their dashboard.
 
-By now, the application has RESTful API using Python Flask-RESTful library. The application can
-register and login the user. Each of the user's info is in Mongo database. The application is
+The application has RESTful APIs using Python Flask-RESTful library. The application has authentication, which can
+register and login the user. Each of the user's info is stored in Mongo database. The application is
 also stored in the cloud through an EC2 AWS instance. 
-The application can also webscrape three news sites: yahoo.com, medicalnewstoday.com, and buzzfeed.com (Books Web Section). 
+The application can also webscrape some sites, such medicalnewstoday.com, buzzfeed.com (Books Web Section) and ESPN.
+The front-end part of the web application is also included to help the user interact with their own news feeds. 
 
-You can access the AWS URL and play around with the API of the application:
+You can access the AWS URL and play around with the web application:
 
 Link to the AWS RESTful API: **ec2-13-58-2-116.us-east-2.compute.amazonaws.com:5000/**
 
-### Example of Successfully Registering a User Through Postman (Result Shown Below)
-![image](https://user-images.githubusercontent.com/34559304/74641670-86c6bd00-5126-11ea-8e8e-4486db37e9af.png)
-
-### Example of Successfully Registering a User Through Postman (Result Shown Below)
 
 
 
