@@ -28,7 +28,7 @@ Link to the AWS RESTful API: **ec2-13-58-2-116.us-east-2.compute.amazonaws.com:5
 6) You then should see your list of news feeds. And if you click on any 'Go To Page' buttons, you should be 
 directed to new tabs to read them off of those news sites' articles. 
 <img width="1280" alt="6" src="https://user-images.githubusercontent.com/34559304/95710252-289a9d00-0c15-11eb-8d4c-bc156d0ffc21.png">
-**What It Looks Like After clicking 'Go To Page':**
+**What It Looks Like After Clicking:**
 <img width="1280" alt="7" src="https://user-images.githubusercontent.com/34559304/95710327-4831c580-0c15-11eb-8324-c3db12843da2.png">
 
 
