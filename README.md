@@ -12,7 +12,7 @@ The front-end part of the web application is also included to help the user inte
 
 You can access the AWS URL and play around with the web application:
 
-Link to the AWS RESTful API: **ec2-13-58-2-116.us-east-2.compute.amazonaws.com:5000/**
+Link to the AWS RESTful API: **http://ec2-13-58-2-116.us-east-2.compute.amazonaws.com:5000/**
 
 **How To Use The News Aggregator App:**
 1) Create an account by going to the 'Register' tab in the Navigation Bar.
